@@ -1,0 +1,70 @@
+<?php
+// الاتصال بقاعدة البيانات
+require_once "db.php";
+
+// جلب جميع جهات التدريب
+$sql = "SELECT * FROM training_companies ORDER BY company_id DESC";
+$stmt = $conn->query($sql);
+$companies = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جهات التدريب</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <h1>جهات التدريب المسجلة</h1>
+
+    <p>
+        <a href="add_company.php">إضافة جهة تدريب جديدة</a>
+    </p>
+
+    <table border="1" cellpadding="10"
+           style="margin: 20px auto; border-collapse: collapse; background: white;">
+
+        <thead>
+            <tr>
+                <th>اسم الجهة</th>
+                <th>الشخص المسؤول</th>
+                <th>البريد الإلكتروني</th>
+                <th>رقم التواصل</th>
+                <th>المدينة</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            <?php if (count($companies) > 0): ?>
+
+                <?php foreach ($companies as $company): ?>
+                    <tr>
+                        <td><?= htmlspecialchars($company["company_name"]) ?></td>
+                        <td><?= htmlspecialchars($company["contact_person"] ?? "") ?></td>
+                        <td><?= htmlspecialchars($company["email"] ?? "") ?></td>
+                        <td><?= htmlspecialchars($company["phone"] ?? "") ?></td>
+                        <td><?= htmlspecialchars($company["city"] ?? "") ?></td>
+                    </tr>
+                <?php endforeach; ?>
+
+            <?php else: ?>
+
+                <tr>
+                    <td colspan="5">لا توجد جهات تدريب مسجلة.</td>
+                </tr>
+
+            <?php endif; ?>
+
+        </tbody>
+    </table>
+
+    <p><a href="index.php">العودة للرئيسية</a></p>
+
+</body>
+</html>
