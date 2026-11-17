@@ -1,0 +1,202 @@
+
+<?php
+// الاتصال بقاعدة البيانات
+require_once "db.php";
+
+// تغيير حالة التقرير عند الضغط على أحد الأزرار
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    $report_id = (int) ($_POST["report_id"] ?? 0);
+    $status = $_POST["status"] ?? "";
+
+    // الحالات المسموح بها
+    $allowedStatuses = ["Pending", "Approved", "Rejected"];
+
+    if ($report_id > 0 && in_array($status, $allowedStatuses, true)) {
+
+        // تحديث حالة التقرير
+        $stmt = $conn->prepare(
+            "UPDATE reports
+             SET status = :status
+             WHERE report_id = :id"
+        );
+
+        $stmt->execute([
+            ":status" => $status,
+            ":id" => $report_id
+        ]);
+    }
+
+    // الرجوع إلى صفحة التقارير
+    header("Location: reports.php");
+    exit;
+}
+
+// جلب التقارير مع أسماء الطلاب
+$sql = "SELECT
+            r.report_id,
+            r.report_title,
+            r.report_description,
+            r.submission_date,
+            r.status,
+            s.full_name
+        FROM reports r
+        INNER JOIN students s
+            ON r.student_id = s.student_id
+        ORDER BY r.report_id DESC";
+
+$stmt = $conn->query($sql);
+$reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// ترجمة الحالات إلى العربية
+$statusNames = [
+    "Pending" => "قيد المراجعة",
+    "Approved" => "مقبول",
+    "Rejected" => "مرفوض"
+];
+?>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقارير التدريب</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <h1>تقارير التدريب</h1>
+
+    <p>
+        <a href="index.php">الرئيسية</a> |
+        <a href="add_report.php">إضافة تقرير جديد</a>
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>رقم التقرير</th>
+                <th>اسم الطالب</th>
+                <th>عنوان التقرير</th>
+                <th>الوصف</th>
+                <th>تاريخ التقديم</th>
+                <th>الحالة</th>
+                <th>الإجراء</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            <?php if (count($reports) > 0): ?>
+
+                <?php foreach ($reports as $report): ?>
+
+                    <tr>
+                        <td>
+                            <?= (int) $report["report_id"] ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars(
+                                $report["full_name"],
+                                ENT_QUOTES,
+                                "UTF-8"
+                            ) ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars(
+                                $report["report_title"],
+                                ENT_QUOTES,
+                                "UTF-8"
+                            ) ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars(
+                                $report["report_description"] ?? "",
+                                ENT_QUOTES,
+                                "UTF-8"
+                            ) ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars(
+                                $report["submission_date"] ?? "-"
+                            ) ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars(
+                                $statusNames[$report["status"]]
+                                    ?? $report["status"],
+                                ENT_QUOTES,
+                                "UTF-8"
+                            ) ?>
+                        </td>
+
+                        <td>
+
+                            <?php if ($report["status"] === "Pending"): ?>
+
+                                <form method="POST" action="reports.php">
+                                    <input
+                                        type="hidden"
+                                        name="report_id"
+                                        value="<?= (int) $report["report_id"] ?>"
+                                    >
+
+                                    <input
+                                        type="hidden"
+                                        name="status"
+                                        value="Approved"
+                                    >
+
+                                    <button type="submit">قبول</button>
+                                </form>
+
+                                <form method="POST" action="reports.php">
+                                    <input
+                                        type="hidden"
+                                        name="report_id"
+                                        value="<?= (int) $report["report_id"] ?>"
+                                    >
+
+                                    <input
+                                        type="hidden"
+                                        name="status"
+                                        value="Rejected"
+                                    >
+
+                                    <button type="submit">رفض</button>
+                                </form>
+
+                            <?php else: ?>
+
+                                تم اتخاذ القرار
+
+                            <?php endif; ?>
+
+                        </td>
+                    </tr>
+
+                <?php endforeach; ?>
+
+            <?php else: ?>
+
+                <tr>
+                    <td colspan="7">
+                        لا توجد تقارير حتى الآن.
+                    </td>
+                </tr>
+
+            <?php endif; ?>
+
+        </tbody>
+    </table>
+
+</body>
+</html>
+```
