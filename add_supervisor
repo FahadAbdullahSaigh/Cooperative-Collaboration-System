@@ -1,0 +1,87 @@
+
+<?php
+// الاتصال بقاعدة البيانات
+require_once "db.php";
+
+// التحقق من إرسال النموذج
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    // استلام بيانات المشرف
+    $full_name = trim($_POST["full_name"] ?? "");
+    $email = trim($_POST["email"] ?? "");
+    $phone = trim($_POST["phone"] ?? "");
+    $specialization = trim($_POST["specialization"] ?? "");
+
+    // التحقق من الحقول المطلوبة وصحة البريد إذا تم إدخاله
+    if (
+        $full_name !== "" &&
+        ($email === "" || filter_var($email, FILTER_VALIDATE_EMAIL))
+    ) {
+
+        // إضافة المشرف إلى قاعدة البيانات
+        $stmt = $conn->prepare(
+            "INSERT INTO supervisors
+            (full_name, email, phone, specialization)
+            VALUES
+            (:full_name, :email, :phone, :specialization)"
+        );
+
+        $stmt->execute([
+            ":full_name" => $full_name,
+            ":email" => $email !== "" ? $email : null,
+            ":phone" => $phone,
+            ":specialization" => $specialization
+        ]);
+
+        // الانتقال إلى صفحة عرض المشرفين
+        header("Location: supervisors.php");
+        exit;
+
+    } else {
+        $error = "تأكد من كتابة اسم المشرف والبريد الإلكتروني بشكل صحيح.";
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إضافة مشرف</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <h1>إضافة مشرف تدريب</h1>
+
+    <p><a href="index.php">الرئيسية</a></p>
+
+    <?php if (!empty($error)): ?>
+        <p>
+            <?= htmlspecialchars($error, ENT_QUOTES, "UTF-8") ?>
+        </p>
+    <?php endif; ?>
+
+    <form method="POST" action="add_supervisor.php">
+
+        <label>اسم المشرف:</label>
+        <input type="text" name="full_name" required>
+
+        <label>البريد الإلكتروني:</label>
+        <input type="email" name="email">
+
+        <label>رقم الجوال:</label>
+        <input type="text" name="phone">
+
+        <label>التخصص:</label>
+        <input type="text" name="specialization">
+
+        <button type="submit">حفظ المشرف</button>
+
+    </form>
+
+</body>
+</html>
+```
