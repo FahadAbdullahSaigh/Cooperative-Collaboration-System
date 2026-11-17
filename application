@@ -1,0 +1,169 @@
+
+<?php
+// الاتصال بقاعدة البيانات
+require_once "db.php";
+
+// تحديث حالة الطلب عند الضغط على قبول أو رفض
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+
+    $id = (int) ($_POST["application_id"] ?? 0);
+    $status = $_POST["status"] ?? "";
+
+    // الحالات المسموح بها
+    $allowedStatuses = ["Pending", "Approved", "Rejected"];
+
+    if ($id > 0 && in_array($status, $allowedStatuses, true)) {
+
+        $stmt = $conn->prepare(
+            "UPDATE training_applications
+             SET status = :status
+             WHERE application_id = :id"
+        );
+
+        $stmt->execute([
+            ":status" => $status,
+            ":id" => $id
+        ]);
+    }
+
+    // الرجوع للصفحة بعد تحديث الحالة
+    header("Location: application.php");
+    exit;
+}
+
+// جلب الطلبات مع أسماء الطلاب وجهات التدريب
+$sql = "SELECT
+            a.application_id,
+            s.full_name,
+            c.company_name,
+            a.application_date,
+            a.start_date,
+            a.end_date,
+            a.status
+        FROM training_applications a
+        INNER JOIN students s
+            ON a.student_id = s.student_id
+        INNER JOIN training_companies c
+            ON a.company_id = c.company_id
+        ORDER BY a.application_id DESC";
+
+$stmt = $conn->query($sql);
+$applications = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// تحويل الحالة إلى العربية
+$statusNames = [
+    "Pending" => "قيد الانتظار",
+    "Approved" => "مقبول",
+    "Rejected" => "مرفوض",
+    "Completed" => "مكتمل"
+];
+?>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>طلبات التدريب</title>
+
+    <!-- استخدام تصميم الموقع -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <h1>طلبات التدريب التعاوني</h1>
+
+    <p>
+        <a href="index.php">الرئيسية</a>
+        |
+        <a href="add_application.php">تقديم طلب جديد</a>
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>رقم الطلب</th>
+                <th>اسم الطالب</th>
+                <th>جهة التدريب</th>
+                <th>تاريخ التقديم</th>
+                <th>بداية التدريب</th>
+                <th>نهاية التدريب</th>
+                <th>الحالة</th>
+                <th>الإجراء</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            <?php if (count($applications) > 0): ?>
+
+                <?php foreach ($applications as $app): ?>
+                    <tr>
+                        <td><?= (int) $app["application_id"] ?></td>
+
+                        <td>
+                            <?= htmlspecialchars($app["full_name"], ENT_QUOTES, "UTF-8") ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars($app["company_name"], ENT_QUOTES, "UTF-8") ?>
+                        </td>
+
+                        <td><?= htmlspecialchars($app["application_date"] ?? "-") ?></td>
+                        <td><?= htmlspecialchars($app["start_date"] ?? "-") ?></td>
+                        <td><?= htmlspecialchars($app["end_date"] ?? "-") ?></td>
+
+                        <td>
+                            <?= htmlspecialchars(
+                                $statusNames[$app["status"]] ?? $app["status"],
+                                ENT_QUOTES,
+                                "UTF-8"
+                            ) ?>
+                        </td>
+
+                        <td>
+                            <?php if ($app["status"] === "Pending"): ?>
+
+                                <!-- زر قبول الطلب -->
+                                <form method="POST" action="application.php">
+                                    <input type="hidden" name="application_id"
+                                           value="<?= (int) $app["application_id"] ?>">
+                                    <input type="hidden" name="status"
+                                           value="Approved">
+                                    <button type="submit">قبول</button>
+                                </form>
+
+                                <!-- زر رفض الطلب -->
+                                <form method="POST" action="application.php">
+                                    <input type="hidden" name="application_id"
+                                           value="<?= (int) $app["application_id"] ?>">
+                                    <input type="hidden" name="status"
+                                           value="Rejected">
+                                    <button type="submit">رفض</button>
+                                </form>
+
+                            <?php else: ?>
+
+                                تم اتخاذ القرار
+
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+
+            <?php else: ?>
+
+                <tr>
+                    <td colspan="8">لا توجد طلبات تدريب حتى الآن.</td>
+                </tr>
+
+            <?php endif; ?>
+
+        </tbody>
+    </table>
+
+</body>
+</html>
+```
