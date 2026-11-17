@@ -1,0 +1,106 @@
+
+<?php
+// استدعاء ملف الاتصال بقاعدة البيانات
+require_once "db.php";
+
+// جلب جميع الطلاب من قاعدة البيانات
+$sql = "SELECT * FROM students ORDER BY student_id DESC";
+
+// تنفيذ الاستعلام
+$stmt = $conn->query($sql);
+
+// تخزين النتائج
+$students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+?>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>قائمة الطلاب</title>
+
+    <!-- ربط ملف التصميم -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <h1>قائمة الطلاب المسجلين</h1>
+
+    <!-- زر الانتقال إلى صفحة إضافة طالب -->
+    <p>
+        <a href="add_student.php">إضافة طالب جديد</a>
+    </p>
+
+    <!-- جدول عرض بيانات الطلاب -->
+    <table border="1" cellpadding="10"
+           style="margin: 20px auto; border-collapse: collapse; background: white;">
+
+        <thead>
+            <tr>
+                <th>الرقم التدريبي</th>
+                <th>الاسم الكامل</th>
+                <th>البريد الإلكتروني</th>
+                <th>رقم الجوال</th>
+                <th>التخصص</th>
+                <th>حالة التدريب</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            <?php if (count($students) > 0): ?>
+
+                <!-- تكرار عرض بيانات كل طالب -->
+                <?php foreach ($students as $student): ?>
+
+                    <tr>
+                        <td>
+                            <?= htmlspecialchars($student["student_number"]) ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars($student["full_name"]) ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars($student["email"]) ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars($student["phone"] ?? "") ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars($student["major"] ?? "") ?>
+                        </td>
+
+                        <td>
+                            <?= htmlspecialchars($student["training_status"]) ?>
+                        </td>
+                    </tr>
+
+                <?php endforeach; ?>
+
+            <?php else: ?>
+
+                <!-- تظهر هذه الرسالة إذا لم يوجد طلاب -->
+                <tr>
+                    <td colspan="6">لا يوجد طلاب مسجلون حتى الآن.</td>
+                </tr>
+
+            <?php endif; ?>
+
+        </tbody>
+    </table>
+
+    <p>
+        <a href="index.php">العودة إلى الصفحة الرئيسية</a>
+    </p>
+
+</body>
+</html>
+```
