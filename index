@@ -1,0 +1,104 @@
+
+<?php
+// الاتصال بقاعدة البيانات
+require_once "db.php";
+
+// حساب عدد السجلات في كل قسم
+$studentsCount = $conn->query(
+    "SELECT COUNT(*) FROM students"
+)->fetchColumn();
+
+$companiesCount = $conn->query(
+    "SELECT COUNT(*) FROM training_companies"
+)->fetchColumn();
+
+$applicationsCount = $conn->query(
+    "SELECT COUNT(*) FROM training_applications"
+)->fetchColumn();
+
+$reportsCount = $conn->query(
+    "SELECT COUNT(*) FROM reports"
+)->fetchColumn();
+
+$supervisorsCount = $conn->query(
+    "SELECT COUNT(*) FROM supervisors"
+)->fetchColumn();
+
+$evaluationsCount = $conn->query(
+    "SELECT COUNT(*) FROM evaluations"
+)->fetchColumn();
+?>
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة التدريب التعاوني</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <h1>نظام إدارة التدريب التعاوني</h1>
+    <p>الكلية التقنية</p>
+
+    <h2>لوحة التحكم الرئيسية</h2>
+
+    <!-- إحصائيات النظام -->
+    <div class="stats">
+
+        <div class="stat-card">
+            <h3>الطلاب</h3>
+            <p><?= (int) $studentsCount ?></p>
+            <a href="students.php">عرض الطلاب</a>
+        </div>
+
+        <div class="stat-card">
+            <h3>جهات التدريب</h3>
+            <p><?= (int) $companiesCount ?></p>
+            <a href="companies.php">عرض الجهات</a>
+        </div>
+
+        <div class="stat-card">
+            <h3>طلبات التدريب</h3>
+            <p><?= (int) $applicationsCount ?></p>
+            <a href="application.php">عرض الطلبات</a>
+        </div>
+
+        <div class="stat-card">
+            <h3>تقارير التدريب</h3>
+            <p><?= (int) $reportsCount ?></p>
+            <a href="reports.php">عرض التقارير</a>
+        </div>
+
+        <div class="stat-card">
+            <h3>المشرفون</h3>
+            <p><?= (int) $supervisorsCount ?></p>
+            <a href="supervisors.php">عرض المشرفين</a>
+        </div>
+
+        <div class="stat-card">
+            <h3>تقييمات الطلاب</h3>
+            <p><?= (int) $evaluationsCount ?></p>
+            <a href="evaluations.php">عرض التقييمات</a>
+        </div>
+
+    </div>
+
+    <!-- روابط إضافة السجلات -->
+    <h2>إضافة بيانات جديدة</h2>
+
+    <div class="dashboard-links">
+        <a href="add_student.php">إضافة طالب</a>
+        <a href="add_company.php">إضافة جهة تدريب</a>
+        <a href="add_application.php">تقديم طلب تدريب</a>
+        <a href="add_report.php">إضافة تقرير</a>
+        <a href="add_supervisor.php">إضافة مشرف</a>
+        <a href="add_evaluation.php">إضافة تقييم</a>
+    </div>
+
+</body>
+</html>
+```
